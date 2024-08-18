@@ -134,7 +134,7 @@ def train_model(model, train_dataloader, test_dataloader, batch_sz, num_ap, num_
             opt.step()
             running_loss_train += loss.item()
         avg_loss = running_loss_train / len(train_dataloader)
-        print(f"--------> [{epoch}]/[{epochs}] Loss_evaluated_train: {avg_loss}")
+        print(f"--------> [{epoch}]/[{epochs}] Loss_evaluated_train: {avg_loss: .6f}")
         model.eval()
         with torch.no_grad():
             for i, xt in enumerate(test_dataloader):
@@ -143,7 +143,7 @@ def train_model(model, train_dataloader, test_dataloader, batch_sz, num_ap, num_
                 running_loss_test += loss_evaluated_test.item()
             avg_loss_test = running_loss_test / len(test_dataloader)
             # print(f"[{epoch}]/[{epochs}] Loss_evaluated_testing: {avg_loss_test}")
-        print("Average loss over epoch {}: {:.4f}".format(epoch + 1, avg_loss))
+        print("Average loss over epoch {}: {:.4f}".format(epoch + 1, avg_loss_test))
     # end_time = time.time()
     # running_time = end_time - start_time
     # print(f'Running time: {running_time: .4f} seconds.')

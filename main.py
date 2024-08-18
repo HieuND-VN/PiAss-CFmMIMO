@@ -75,14 +75,16 @@ def qnode(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, weights
     return result
 
 test_data_numpy, train_dataloader, test_dataloader, train_dataloader_CNN, test_dataloader_CNN = one_time_dataset(num_ap, num_ue, tau_p, batch_size)
+
 model_HQCNN = HQCNN(num_ap, num_ue, tau_p, qnode, weight_shapes)
 model_MLP = MLPModel(num_ap, num_ue, tau_p)
 model_CNN = CNNModel(num_ap, num_ue, tau_p)
+
 train_model(model_HQCNN, train_dataloader, test_dataloader, batch_size, num_ap, num_ue, tau_p, lr=0.01)
 train_model(model_MLP, train_dataloader, test_dataloader, batch_size, num_ap, num_ue, tau_p, lr=0.01)
-# reshape input data to become [batch_size, num_ap, num_ue]
 train_model(model_CNN, train_dataloader_CNN, test_dataloader_CNN, batch_size, num_ap, num_ue, tau_p, lr=0.01)
-#test with unseendata
+
+
 beta_test_flatten = test_data_numpy[0] #[num_ap*num_ue, ]
 beta_test_reshape = beta_test_flatten.reshape(num_ap,num_ue) #[num_ap, num_ue]
 beta_flatten_test = np.expand_dims(beta_test_flatten, axis = 0) #[1, num_ap*num_ue]
@@ -110,6 +112,7 @@ pilot_index_CNN = pilot_index_CNN.cpu().numpy()
 rate_HQCNN = calculate_dl_rate(beta_test_reshape, pilot_index_HQCNN, num_ap, num_ue, tau_p)
 rate_MLP = calculate_dl_rate(beta_test_reshape, pilot_index_MLP)
 rate_CNN = calculate_dl_rate(beta_test_reshape, pilot_index_CNN)
+
 pilot_init = np.random.randint(tau_p, size = num_ue)
 rate_greedy, pilot_index_greedy = greedy_assignment(beta_test_reshape, num_ap, num_ue, tau_p, pilot_init)
 rate_random, pilot_index_random = random_assignment(beta_test_reshape, pilot_init, num_ap, num_ue, tau_p)
