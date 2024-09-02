@@ -134,7 +134,7 @@ def Pooling_ansatz1(weights_0, weights_1, wires):  # 2 params
 
 @qml.qnode(dev)
 def qnode_Amp_QCQP(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6,
-                   weights_7, weights_8):  # , weights_9, weights_10, weights_11, weights_12, weights_13, weights_14, weights_15, weights_16, weights_17
+                   weights_7, weights_8):
     # qml.AngleEmbedding(inputs, wires=range(n_qubits))
     qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
     # --------------------------------------------------------- Convolutional Layer1 ---------------------------------------------------------#
