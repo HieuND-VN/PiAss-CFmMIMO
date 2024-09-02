@@ -9,12 +9,27 @@ import pennylane as qml
 rho_d = 1
 rho_p = 1/2
 
-class HQCNN(nn.Module):
+class HQCNN_QP(nn.Module):
     def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
-        super(HQCNN, self).__init__()
+        super(HQCNN_QP, self).__init__()
         self.clayer_1 = nn.Linear(num_ap * num_ue, 8)
         self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
         self.clayer_2 = nn.Linear(4, num_ue * tau_p)
+        # self.clayer_2 = nn.Linear(4, num_ue * num_ue)
+
+    def forward(self, x):
+        x = self.clayer_1(x)
+        x = self.qlayer(x)
+        x = self.clayer_2(x)
+        return x
+
+class HQCNN_noQP(nn.Module):
+    def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
+        super(HQCNN_noQP, self).__init__()
+        self.clayer_1 = nn.Linear(num_ap * num_ue, 8)
+        self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
+        self.clayer_2 = nn.Linear(8, num_ue * tau_p)
+        # self.clayer_2 = nn.Linear(4, num_ue * num_ue)
 
     def forward(self, x):
         x = self.clayer_1(x)
@@ -28,7 +43,7 @@ class MLPModel(nn.Module):
         self.fc_1 = nn.Linear(num_ap * num_ue, 8)
         self.fc_2 = nn.Linear(8,4)
         self.fc_3 = nn.Linear(4, num_ue * tau_p)
-
+        # self.fc_3 = nn.Linear(4, num_ue * num_ue)
     def forward(self, x):
         x = self.fc_1(x)
         x = self.fc_2(x)
@@ -47,6 +62,7 @@ class CNNModel(nn.Module):
         self.fc_hidden1 = nn.Linear(128, 64)  # First hidden layer after fc1
         self.fc_hidden2 = nn.Linear(64, 32)  # Second hidden layer
         self.fc2 = nn.Linear(32, num_ue * tau_p)  # Final output layer
+        # self.fc2 = nn.Linear(32, num_ue * num_ue)  # Final output layer
         self.num_ue = num_ue
         self.tau_p = tau_p
     def forward(self, x):
@@ -75,7 +91,7 @@ class CNNModel(nn.Module):
 def dl_rate_calculator_w_pilot_probs(pilot_probs, beta, tau_p):
     num_ap, num_ue = beta.shape
     phi_inner_product = torch.matmul(pilot_probs, pilot_probs.T)
-    phi_inner_product_squared = phi_inner_product**2
+    phi_inner_product_squared = phi_inner_product
     inner_sum = torch.matmul(beta, phi_inner_product_squared)
     numerator_c = torch.sqrt(torch.tensor(rho_p * tau_p, dtype=torch.float32)) * beta  # Shape: (M, K)
     denominator_c = tau_p * rho_p * inner_sum + 1
@@ -98,7 +114,7 @@ def dl_rate_calculator_w_pilot_probs(pilot_probs, beta, tau_p):
                 for m in range(num_ap):
                     sum_term_2 += (torch.sqrt(eta[m,j])*gamma[m,j]*beta[m,k])/(beta[m,j])
 
-            sum_term_1 += (sum_term_2**2)*(flag[k,j]**2)
+            sum_term_1 += (sum_term_2**2)*(flag[k,j])
         UI[k] = rho_d * sum_term_1
 
     sinr = DS / (UI + BU + 1)
@@ -108,6 +124,7 @@ def loss_function_PA(beta, output, batch_sz, num_ap, num_ue, tau_p):
     sum_rate_each_batch = torch.zeros(batch_sz)
     beta = beta.reshape(batch_sz, num_ap, num_ue)
     pilot_probs_1 = output.reshape(batch_sz, num_ue, tau_p)
+    # pilot_probs_1 = output.reshape(batch_sz, num_ue, num_ue)
     pilot_probs = F.softmax(pilot_probs_1, dim=-1)
 
     pilot_index = torch.argmax(pilot_probs, dim=-1) # loss grad_fn from here
@@ -118,10 +135,28 @@ def loss_function_PA(beta, output, batch_sz, num_ap, num_ue, tau_p):
         sum_rate_each_batch[i] = torch.sum(dl_rate_calculator_w_pilot_probs(pilot_probs[i], beta[i], tau_p))
     return torch.mean(sum_rate_each_batch)*(-1)
 
+def loss_function_PA_test(beta, output, batch_sz, num_ap, num_ue, tau_p):
+    # batch_sz = 1
+    sum_rate_each_batch = torch.zeros(batch_sz)
+    beta = beta.reshape(batch_sz, num_ap, num_ue)
+    pilot_probs_1 = output.reshape(batch_sz, num_ue, tau_p)
+    # pilot_probs_1 = output.reshape(batch_sz, num_ue, num_ue)
+    pilot_probs = F.softmax(pilot_probs_1, dim=-1) # [batch_size, num_ue, tau_p]
+
+    pilot_index = torch.argmax(pilot_probs, dim=-1) # [batch_size, num_ue]
+    pilot_index_one_hot = F.one_hot(pilot_index, num_classes = tau_p)
+    pilot_index_one_hot = pilot_index_one_hot.float()
+    # pilot_probs_process = pilot_probs * torch_one_hot
+    for i in range(batch_sz):
+        sum_rate_each_batch[i] = torch.sum(dl_rate_calculator_w_pilot_probs(pilot_index_one_hot[i], beta[i], tau_p))
+    return torch.mean(sum_rate_each_batch)*(-1)
+
 no_epochs = 10
-def train_model(model, train_dataloader, test_dataloader, batch_sz, num_ap, num_ue, tau_p, lr=0.01):
+def train_model(model, train_dataloader, test_dataloader, batch_sz, num_ap, num_ue, tau_p, num_epoch, lr=0.01):
     opt = optim.Adam(model.parameters(), lr=lr)
-    epochs = no_epochs
+    epochs = num_epoch
+    train_loss = -1*np.ones(epochs)
+    test_loss = -1 * np.ones(epochs)
     for epoch in range(epochs):
         running_loss_train = 0
         running_loss_test = 0
@@ -133,17 +168,20 @@ def train_model(model, train_dataloader, test_dataloader, batch_sz, num_ap, num_
             loss.backward()
             opt.step()
             running_loss_train += loss.item()
-        avg_loss = running_loss_train / len(train_dataloader)
-        print(f"--------> [{epoch}]/[{epochs}] Loss_evaluated_train: {avg_loss: .6f}")
+        # avg_loss = running_loss_train / len(train_dataloader)
+        avg_loss = running_loss_train / 4
+        # print(f"-----> [{epoch}]/[{epochs}] Loss_evaluated_train: {avg_loss: .6f}")
         model.eval()
+        train_loss[epoch] = train_loss[epoch]*avg_loss
         with torch.no_grad():
             for i, xt in enumerate(test_dataloader):
                 output_QCNN_test = model(xt)
+                # loss_evaluated_test = loss_function_PA_test(xt, output_QCNN_test, batch_sz, num_ap, num_ue, tau_p)
                 loss_evaluated_test = loss_function_PA(xt, output_QCNN_test, batch_sz, num_ap, num_ue, tau_p)
                 running_loss_test += loss_evaluated_test.item()
-            avg_loss_test = running_loss_test / len(test_dataloader)
+            # avg_loss_test = running_loss_test / len(test_dataloader)
             # print(f"[{epoch}]/[{epochs}] Loss_evaluated_testing: {avg_loss_test}")
-        print("Average loss over epoch {}: {:.4f}".format(epoch + 1, avg_loss_test))
-    # end_time = time.time()
-    # running_time = end_time - start_time
-    # print(f'Running time: {running_time: .4f} seconds.')
+            avg_loss_test = running_loss_test
+        # print("--> Test loss over epoch {}: {:.6f}".format(epoch + 1, avg_loss_test))
+            test_loss[epoch] = test_loss[epoch] * avg_loss_test
+    return train_loss, test_loss

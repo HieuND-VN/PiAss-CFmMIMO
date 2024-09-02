@@ -67,9 +67,9 @@ def one_time_dataset(Num_ap, Num_ue, tau_p, batch_size):
     X_test_CNN = torch.tensor(data_test_CNN).float()
     train_dataset_CNN = list(X_train_CNN)
     test_dataset_CNN = list(X_test_CNN)
-    train_dataloader_CNN = DataLoader(train_dataset_CNN, batch_size=batch_sz, shuffle=False, drop_last=True)
-    test_dataloader_CNN = DataLoader(test_dataset_CNN, batch_size=batch_sz, shuffle=False, drop_last=True)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_sz, shuffle=False, drop_last=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_sz, shuffle=False, drop_last=True)
+    train_dataloader_CNN = DataLoader(train_dataset_CNN, batch_size=batch_sz, shuffle=False, drop_last=False)
+    test_dataloader_CNN = DataLoader(test_dataset_CNN, batch_size=batch_sz, shuffle=True, drop_last=False)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_sz, shuffle=False, drop_last=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_sz, shuffle=True, drop_last=False)
 
-    return data_test, train_dataloader, test_dataloader, train_dataloader_CNN, test_dataloader_CNN
+    return data_train, train_dataloader, test_dataloader, train_dataloader_CNN, test_dataloader_CNN
