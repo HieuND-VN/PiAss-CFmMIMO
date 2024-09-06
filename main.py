@@ -43,9 +43,9 @@ def balance_array(arr, K, tau_p):
     return arr_copy
 
 
-num_ap = 20
-num_ue = 10
-tau_p = 5
+num_ap = 30
+num_ue = 15
+tau_p = 10
 batch_size = 16
 n_qubits = 8
 weight_shapes_QCQP = {
@@ -140,7 +140,8 @@ def Pooling_ansatz1(weights_0, weights_1, wires):  # 2 params
 def qnode_Amp_QCQP(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6,
                    weights_7, weights_8):  # , weights_9, weights_10, weights_11, weights_12, weights_13, weights_14, weights_15, weights_16, weights_17
     # qml.AngleEmbedding(inputs, wires=range(n_qubits))
-    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    # qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), normalize=True)
     # --------------------------------------------------------- Convolutional Layer1 ---------------------------------------------------------#
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[0, 1])
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[2, 3])
@@ -213,7 +214,8 @@ def qnode_Ang_QCQP(inputs, weights_0, weights_1, weights_2, weights_3, weights_4
 @qml.qnode(dev)
 def qnode_Amp_QC(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6):
     # qml.AngleEmbedding(inputs, wires=range(n_qubits))
-    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    # qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), normalize=True)
     # --------------------------------------------------------- Convolutional Layer1 ---------------------------------------------------------#
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[0, 1])
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[2, 3])
@@ -277,7 +279,8 @@ def qnode_Ang_QC(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, 
 def qnode_Amp_QCQC(inputs, weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6,
                    weights_7, weights_8, weights_9, weights_10):
     # qml.AngleEmbedding(inputs, wires=range(n_qubits))
-    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    # qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), pad_with=0.0, normalize=True)
+    qml.AmplitudeEmbedding(inputs, wires=range(n_qubits), normalize=True)
     # --------------------------------------------------------- Convolutional Layer1 ---------------------------------------------------------#
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[0, 1])
     U_SU4(weights_0, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, wires=[2, 3])
@@ -374,12 +377,12 @@ mean_greedy_list = np.mean(greedy_list)
 mean_random_list = np.mean(random_list)
 mean_masterAP_list = np.mean(masterAP_list)
 
-model_HQCNN_Amp_QCQP = HQCNN_QP(num_ap, num_ue, tau_p, qnode_Amp_QCQP, weight_shapes_QCQP)
-model_HQCNN_Ang_QCQP = HQCNN_QP(num_ap, num_ue, tau_p, qnode_Ang_QCQP, weight_shapes_QCQP)
-model_HQCNN_Amp_QC = HQCNN_noQP(num_ap, num_ue, tau_p, qnode_Amp_QC, weight_shapes_QC)
-model_HQCNN_Ang_QC = HQCNN_noQP(num_ap, num_ue, tau_p, qnode_Ang_QC, weight_shapes_QC)
-model_HQCNN_Amp_QCQC = HQCNN_noQP(num_ap, num_ue, tau_p, qnode_Amp_QCQC, weight_shapes_QCQC)
-model_HQCNN_Ang_QCQC = HQCNN_noQP(num_ap, num_ue, tau_p, qnode_Ang_QCQC, weight_shapes_QCQC)
+model_HQCNN_Amp_QCQP = HQCNN_Amp_QP(num_ap, num_ue, tau_p, qnode_Amp_QCQP, weight_shapes_QCQP)
+model_HQCNN_Ang_QCQP = HQCNN_Ang_QP(num_ap, num_ue, tau_p, qnode_Ang_QCQP, weight_shapes_QCQP)
+model_HQCNN_Amp_QC = HQCNN_Amp_noQP(num_ap, num_ue, tau_p, qnode_Amp_QC, weight_shapes_QC)
+model_HQCNN_Ang_QC = HQCNN_Ang_noQP(num_ap, num_ue, tau_p, qnode_Ang_QC, weight_shapes_QC)
+model_HQCNN_Amp_QCQC = HQCNN_Amp_noQP(num_ap, num_ue, tau_p, qnode_Amp_QCQC, weight_shapes_QCQC)
+model_HQCNN_Ang_QCQC = HQCNN_Ang_noQP(num_ap, num_ue, tau_p, qnode_Ang_QCQC, weight_shapes_QCQC)
 model_MLP = MLPModel(num_ap, num_ue, tau_p)
 model_CNN = CNNModel(num_ap, num_ue, tau_p)
 print(f'HQCNN-TRAINING PROCESS ...')
@@ -396,10 +399,9 @@ trloss_Amp_QCQC, teloss_Amp_QCQC = train_model(model_HQCNN_Amp_QCQC, train_datal
 print(f'\tHQCNN-ANGLE-QCQC ...')
 trloss_Ang_QCQC, teloss_Ang_QCQC = train_model(model_HQCNN_Ang_QCQC, train_dataloader, test_dataloader, batch_size, num_ap, num_ue, tau_p, num_epoch=15, lr=0.01)
 print(f'MLP-TRAINING PROCESS ...')
-train_model(model_MLP, train_dataloader, test_dataloader, batch_size, num_ap, num_ue, tau_p, num_epoch=10, lr=0.01)
+trloss_MLP, teloss_MLP = train_model(model_MLP, train_dataloader, test_dataloader, batch_size, num_ap, num_ue, tau_p, num_epoch=10, lr=0.01)
 print(f'CNN-TRAINING PROCESS ...')
-train_model(model_CNN, train_dataloader_CNN, test_dataloader_CNN, batch_size, num_ap, num_ue, tau_p, num_epoch=10,
-            lr=0.01)
+trloss_CNN, teloss_CNN = train_model(model_CNN, train_dataloader_CNN, test_dataloader_CNN, batch_size, num_ap, num_ue, tau_p, num_epoch=10, lr=0.01)
 #
 beta_test_flatten = test_data_numpy[0]  # [num_ap*num_ue]
 beta_test_reshape = beta_test_flatten.reshape(num_ap, num_ue)  # [num_ap, num_ue]
@@ -465,8 +467,8 @@ rate_HQCNN_Ang_QCQC= calculate_dl_rate(beta_test_reshape, pilot_index_HQCNN_Ang_
 
 rate_balance_HQCNN_Amp_QCQP = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Amp_QCQP, num_ap, num_ue, tau_p)
 rate_balance_HQCNN_Ang_QCQP = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Ang_QCQP, num_ap, num_ue, tau_p)
-rate_balance_HQCNN_Amp_QC   = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Amp_QC, num_ap, num_ue, tau_p)
-rate_balance_HQCNN_Ang_QC   = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Ang_QC, num_ap, num_ue, tau_p)
+rate_balance_HQCNN_Amp_QC  = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Amp_QC, num_ap, num_ue, tau_p)
+rate_balance_HQCNN_Ang_QC = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Ang_QC, num_ap, num_ue, tau_p)
 rate_balance_HQCNN_Amp_QCQC = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Amp_QCQC, num_ap, num_ue, tau_p)
 rate_balance_HQCNN_Ang_QCQC = calculate_dl_rate(beta_test_reshape, balance_HQCNN_pilot_index_Ang_QCQC, num_ap, num_ue, tau_p)
 
@@ -481,29 +483,29 @@ rate_random = random_assignment_1(beta_test_reshape, pilot_init, num_ap, num_ue,
 rate_masterAP = master_AP_assignment_1(beta_test_reshape, num_ap, num_ue, tau_p)
 
 print(f'ONE SAMPLE')
-print(f'\tHQCNN_Amp_QCQP: {np.sum(rate_HQCNN_Amp_QCQP):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QCQP}\n-------------------------------------------------')
-print(f'\tHQCNN_Ang_QCQP: {np.sum(rate_HQCNN_Ang_QCQP):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QCQP}\n-------------------------------------------------')
-print(f'\tHQCNN_Amp_QC: {np.sum(rate_HQCNN_Amp_QC):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QC}\n-------------------------------------------------')
-print(f'\tHQCNN_Ang_QC: {np.sum(rate_HQCNN_Ang_QC):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QC}\n-------------------------------------------------')
-print(f'\tHQCNN_Amp_QCQC: {np.sum(rate_HQCNN_Amp_QCQC):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QCQC}\n-------------------------------------------------')
-print(f'\tHQCNN_Ang_QCQC: {np.sum(rate_HQCNN_Ang_QCQC):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QCQC}\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QCQP: {np.sum(rate_HQCNN_Amp_QCQP):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QCQP}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QCQP: {np.sum(rate_HQCNN_Ang_QCQP):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QCQP}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QC: {np.sum(rate_HQCNN_Amp_QC):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QC: {np.sum(rate_HQCNN_Ang_QC):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QCQC: {np.sum(rate_HQCNN_Amp_QCQC):.4f}\tPilot_index: {pilot_index_HQCNN_Amp_QCQC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QCQC: {np.sum(rate_HQCNN_Ang_QCQC):.4f}\tPilot_index: {pilot_index_HQCNN_Ang_QCQC}')#\n-------------------------------------------------')
 
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Amp_QCQP):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QCQP}\n-------------------------------------------------')
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Ang_QCQP):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QCQP}\n-------------------------------------------------')
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Amp_QC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QC}\n-------------------------------------------------')
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Ang_QC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QC}\n-------------------------------------------------')
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Amp_QCQC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QCQC}\n-------------------------------------------------')
-print(f'\tHQCNN_balance: {np.sum(rate_balance_HQCNN_Ang_QCQC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QCQC}\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QCQP_balance: {np.sum(rate_balance_HQCNN_Amp_QCQP):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QCQP}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QCQP_balance: {np.sum(rate_balance_HQCNN_Ang_QCQP):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QCQP}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QC_balance: {np.sum(rate_balance_HQCNN_Amp_QC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QC_balance: {np.sum(rate_balance_HQCNN_Ang_QC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Amp_QCQC_balance: {np.sum(rate_balance_HQCNN_Amp_QCQC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Amp_QCQC}')#\n-------------------------------------------------')
+print(f'\tHQCNN_Ang_QCQC_balance: {np.sum(rate_balance_HQCNN_Ang_QCQC):.4f}\tPilot_index: {balance_HQCNN_pilot_index_Ang_QCQC}')#\n-------------------------------------------------')
 
-print(f'\tMLP: {np.sum(rate_MLP)}\tPilot_index: {pilot_index_MLP}\n-------------------------------------------------')
+print(f'\tMLP: {np.sum(rate_MLP):.4f}\tPilot_index: {pilot_index_MLP}')#\n-------------------------------------------------')
 # print(f'MLP_balance: {np.sum(rate_balance_MLP)}\nPilot_index: {balance_MLP_pilot_index}\n'
 #       f'-------------------------------------------------')
-print(f'\tCNN: {np.sum(rate_CNN)}\nPilot_index: {pilot_index_CNN}\n-------------------------------------------------')
+print(f'\tCNN: {np.sum(rate_CNN):.4f}\tPilot_index: {pilot_index_CNN}')#\n-------------------------------------------------')
 # print(f'CNN_balance: {np.sum(rate_balance_CNN)}\nPilot_index: {balance_CNN_pilot_index}\n'
 #       f'-------------------------------------------------')
-print(f'\tRandom Algo: {rate_random}\n-------------------------------------------------')
-print(f'\tGreedy Algo: {rate_greedy}\n-------------------------------------------------')
-print(f'\tMaster-AP Algo: {rate_masterAP}\n-------------------------------------------------')
+print(f'\tRandom Algo: {rate_random:.4f}')#\n-------------------------------------------------')
+print(f'\tGreedy Algo: {rate_greedy:.4f}')#\n-------------------------------------------------')
+print(f'\tMaster-AP Algo: {rate_masterAP:.4f}')#\n-------------------------------------------------')
 
 # print(f'HQCNN: {np.sum(rate_HQCNN)}\n-------------------------------------------------')
 # print(f'MLP: {np.sum(rate_MLP)}\n-------------------------------------------------')
@@ -515,6 +517,8 @@ print(f'\tHQCNN_Amp_QC: {np.max(trloss_Amp_QC):.4f}\{np.max(teloss_Amp_QC):.4f}'
 print(f'\tHQCNN_Ang_QC: {np.max(trloss_Ang_QC):.4f}\{np.max(teloss_Ang_QC):.4f}')
 print(f'\tHQCNN_Amp_QCQC:{np.max(trloss_Amp_QCQC):.4f}\{np.max(teloss_Amp_QCQC):.4f}')
 print(f'\tHQCNN_Ang_QCQC:{np.max(trloss_Ang_QCQC):.4f}\{np.max(teloss_Ang_QCQC):.4f}')
-print(f'\tRandom Algo: {mean_random_list}\n-------------------------------------------------')
-print(f'\tGreedy Algo: {mean_greedy_list}\n-------------------------------------------------')
-print(f'\tMaster-AP Algo:{mean_masterAP_list}\n-------------------------------------------------')
+print(f'\tMLP: {np.max(trloss_MLP):.4f}\{np.max(teloss_MLP):.4f}')
+print(f'\tCNN: {np.max(trloss_CNN):.4f}\{np.max(teloss_CNN):.4f}')
+print(f'\tRandom Algo: {mean_random_list:.4f}')#\n-------------------------------------------------')
+print(f'\tGreedy Algo: {mean_greedy_list:.4f}')#\n-------------------------------------------------')
+print(f'\tMaster-AP Algo: {mean_masterAP_list:.4f}')#\n-------------------------------------------------')

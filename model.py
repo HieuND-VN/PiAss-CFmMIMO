@@ -8,10 +8,22 @@ import torch.optim as optim
 import pennylane as qml
 rho_d = 1
 rho_p = 1/2
-
-class HQCNN_QP(nn.Module):
+class HQCNN_Amp_QP(nn.Module):
     def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
-        super(HQCNN_QP, self).__init__()
+        super(HQCNN_Amp_QP, self).__init__()
+        self.clayer_1 = nn.Linear(num_ap * num_ue, 2**8)
+        self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
+        self.clayer_2 = nn.Linear(4, num_ue * tau_p)
+        # self.clayer_2 = nn.Linear(4, num_ue * num_ue)
+
+    def forward(self, x):
+        x = self.clayer_1(x)
+        x = self.qlayer(x)
+        x = self.clayer_2(x)
+        return x
+class HQCNN_Ang_QP(nn.Module):
+    def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
+        super(HQCNN_Ang_QP, self).__init__()
         self.clayer_1 = nn.Linear(num_ap * num_ue, 8)
         self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
         self.clayer_2 = nn.Linear(4, num_ue * tau_p)
@@ -22,10 +34,23 @@ class HQCNN_QP(nn.Module):
         x = self.qlayer(x)
         x = self.clayer_2(x)
         return x
-
-class HQCNN_noQP(nn.Module):
+class HQCNN_Amp_noQP(nn.Module):
     def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
-        super(HQCNN_noQP, self).__init__()
+        super(HQCNN_Amp_noQP, self).__init__()
+        self.clayer_1 = nn.Linear(num_ap * num_ue, 2**8)
+        self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
+        self.clayer_2 = nn.Linear(8, num_ue * tau_p)
+        # self.clayer_2 = nn.Linear(4, num_ue * num_ue)
+
+    def forward(self, x):
+        x = self.clayer_1(x)
+        x = self.qlayer(x)
+        x = self.clayer_2(x)
+        return x
+
+class HQCNN_Ang_noQP(nn.Module):
+    def __init__(self, num_ap, num_ue, tau_p, qnode, weight_shapes):
+        super(HQCNN_Ang_noQP, self).__init__()
         self.clayer_1 = nn.Linear(num_ap * num_ue, 8)
         self.qlayer = qml.qnn.TorchLayer(qnode, weight_shapes)
         self.clayer_2 = nn.Linear(8, num_ue * tau_p)
