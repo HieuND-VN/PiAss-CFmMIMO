@@ -7,11 +7,11 @@ rho_p = 1 / 2
 
 
 class MLPModel(nn.Module):
-    def __init__(self, num_ap, num_ue, tau_p):
+    def __init__(self, num_ap, num_ue, tau_p,n_qubits):
         super(MLPModel, self).__init__()
-        self.fc_1 = nn.Linear(num_ap * num_ue, 8)
-        self.fc_2 = nn.Linear(8, 4)
-        self.fc_3 = nn.Linear(4, num_ue * tau_p)
+        self.fc_1 = nn.Linear(num_ap * num_ue, n_qubits)
+        self.fc_2 = nn.Linear(n_qubits, n_qubits)
+        self.fc_3 = nn.Linear(n_qubits, num_ue * tau_p)
 
     def forward(self, x):
         x = self.fc_1(x)
@@ -109,7 +109,7 @@ def calculate_dl_rate(beta, pilot_index, num_ap, num_ue, tau_p):
 
 
 def greedy_assignment(beta, num_ap, num_ue, tau_p, pilot_init):
-    N = 3
+    N = num_ue
     pilot_index = pilot_init
     pilot_index = pilot_index.astype(int)
     for n in range(N):
@@ -193,7 +193,16 @@ def random_assignment_1(beta, pilot_index, num_ap, num_ue, tau_p):
     sum_rate = np.sum(rate_list)
     return sum_rate#, pilot_index
 
+def EPAS_assignment_1(beta,pilot_list,num_ap,num_ue,tau_p):
+    rate_each_scheme = np.zeros(len(pilot_list))
+    # print(f'BENCHMARK: length of pilot_list {len(pilot_list)}')
+    for i in range(len(pilot_list)):
 
+        rate_each_scheme[i] = np.sum(calculate_dl_rate(beta, pilot_list[i], num_ap, num_ue, tau_p))
+
+    optimal_value = np.max(rate_each_scheme)
+    optimal_scheme = pilot_list[np.argmax(rate_each_scheme)]
+    return optimal_value, optimal_scheme
 def balance_array(arr, K, tau_p):
     # Create a copy of the array to avoid modifying the original one
     arr_copy = arr.copy()

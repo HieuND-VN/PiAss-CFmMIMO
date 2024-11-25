@@ -71,5 +71,6 @@ def one_time_dataset(Num_ap, Num_ue, tau_p, batch_size):
     test_dataloader_CNN = DataLoader(test_dataset_CNN, batch_size=batch_sz, shuffle=True, drop_last=False)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_sz, shuffle=False, drop_last=False)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_sz, shuffle=True, drop_last=False)
-
-    return data_train, train_dataloader, test_dataloader, train_dataloader_CNN, test_dataloader_CNN
+    test_cdf = DataLoader(test_dataset, batch_size=1, shuffle=False, drop_last=False)
+    test_cdf_cnn = DataLoader(test_dataset, batch_size=1, shuffle=False, drop_last=False)
+    return data_test, train_dataloader, test_dataloader, train_dataloader_CNN, test_dataloader_CNN, test_cdf, test_cdf_cnn
